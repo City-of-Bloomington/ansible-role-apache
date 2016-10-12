@@ -6,22 +6,29 @@
     name: "{{ item }}"
     state: present
   tags: apache
-  # defined in defaults/main.yml
   with_items:
     - apache2
 
 - name: Add mod_rewrite configuration
   copy: src=rewrite.conf dest=/etc/apache2/mods-available/rewrite.conf force=no
 
-- apache2_module: state=present name=rewrite
-- apache2_module: state=present name=alias
+- name: Enable apache rewrite module
+  apache2_module: state=present name=rewrite
+
+- name: Enable apache alias module
+  apache2_module: state=present name=alias
 
 # if putting things like /srv/solr directory in /srv
 # then solr user needs to be able to at least execute permissions to chdir
 - file: path=/srv              state=directory owner=www-data group=staff mode=2775
 - file: path=/srv/sites        state=directory owner=www-data group=staff mode=2775
 - file: path=/srv/sites/master state=directory
-- copy: src=/var/www/html/index.html dest=/srv/sites/master/index.html force=no
+
+# note that ansible 'copy' copies from the control machine to the host:
+#- copy: src=/var/www/html/index.html dest=/srv/sites/master/index.html force=no
+- name: Copy over default index.html
+  shell: cp /var/www/html/index.html /srv/sites/master/index.html
+
 - file: dest=/srv/sites owner=www-data group=staff mode="g+rw" recurse=yes
 
 - name: Update default configuration
