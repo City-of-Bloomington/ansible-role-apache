@@ -18,8 +18,6 @@
 - name: Enable apache alias module
   apache2_module: state=present name=alias
 
-# if putting things like /srv/solr directory in /srv
-# then solr user needs to be able to at least execute permissions to chdir
 - file: path=/srv              state=directory owner=www-data group=staff mode=2775
 - file: path=/srv/sites        state=directory owner=www-data group=staff mode=2775
 - file: path=/srv/sites/master state=directory
