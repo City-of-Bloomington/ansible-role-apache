@@ -1,3 +1,9 @@
 ---
 apache_serveradmin: example@domain.com
 
+apache_ssl:
+  key:
+    file: server.key
+  cert:
+    file: server.crt
+    subj: /CN={{ ansible_host }}

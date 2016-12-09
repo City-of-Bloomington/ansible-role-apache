@@ -12,11 +12,43 @@
 - name: Add mod_rewrite configuration
   copy: src=rewrite.conf dest=/etc/apache2/mods-available/rewrite.conf force=no
 
-- name: Enable apache rewrite module
+- name: Enable rewrite module
   apache2_module: state=present name=rewrite
 
-- name: Enable apache alias module
+- name: Enable alias module
   apache2_module: state=present name=alias
+
+- name: Enable SSL module
+  apache2_module: state=present name=ssl
+
+- name: Generate self-signed certificate
+  command: openssl req -new -nodes -x509 -subj "{{ apache_ssl.cert.subj }}" -days 3650 -keyout /etc/ssl/private/{{ apache_ssl.key.file }} -out /etc/ssl/private/{{ apache_ssl.cert.file }}
+  when: apache_ssl.key.data is undefined
+  no_log: True
+
+- name: Install ssl key
+  copy:
+    content: "{{ apache_ssl.key.data }}"
+    dest: /etc/ssl/private/{{ apache_ssl.key.file }}
+    mode: 0640
+  when: apache_ssl.key.data is defined
+  no_log: True
+
+- name: Install ssl cert
+  copy:
+    content: "{{ apache_ssl.cert.data }}"
+    dest: /etc/ssl/private/{{ apache_ssl.cert.file }}
+    mode: 0640
+  when: apache_ssl.cert.data is defined
+  no_log: True
+
+- name: Install ssl certificate chain
+  copy:
+    content: "{{ apache_ssl.chain.data }}"
+    dest: /etc/ssl/private/{{ apache_ssl.chain.file }}
+    mode: 0640
+  when: apache_ssl.chain.data is defined
+  no_log: True
 
 - file: path=/srv              state=directory owner=www-data group=staff mode=2775
 - file: path=/srv/sites        state=directory owner=www-data group=staff mode=2775
@@ -40,4 +72,7 @@
 - service: name=apache2 state=restarted
 
 - name: Configure the firewall (http)
-  ufw: rule=allow port=http
+  ufw: rule=allow port={{ item }}
+  with_items:
+    - http
+    - https
