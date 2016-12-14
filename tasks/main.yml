@@ -53,6 +53,7 @@
 - file: path=/srv              state=directory owner=www-data group=staff mode=2775
 - file: path=/srv/sites        state=directory owner=www-data group=staff mode=2775
 - file: path=/srv/sites/master state=directory
+- file: path=/etc/apache2/sites-enabled/conf.d state=directory
 
 # note that ansible 'copy' copies from the control machine to the host:
 #- copy: src=/var/www/html/index.html dest=/srv/sites/master/index.html force=no
