@@ -7,7 +7,7 @@ This role enables SSL for all web traffic, and redirects URLs from
 port 80 to port 443.  If you do not specify SSL key and cert data,
 then a self-signed cert will be generated.
 
-Requirements
+Dependencies
 ------------
 
 City-of-Bloomington.linux
