@@ -21,9 +21,7 @@ CustomLog ${APACHE_LOG_DIR}/access.log combined
 
         SSLCertificateFile  /etc/ssl/private/{{ apache_ssl.cert.file }}
         SSLCertificateKeyFile /etc/ssl/private/{{ apache_ssl.key.file }}
-        {% if apache_ssl.chain is defined %}
-        SSLCertificateChainFile /etc/ssl/private/{{ apache_ssl.chain.file }}
-        {% endif %}
+        {% if apache_ssl.chain is defined %}SSLCertificateChainFile /etc/ssl/private/{{ apache_ssl.chain.file }}{% endif %}
 
         <FilesMatch "\.(cgi|shtml|phtml|php)$">
             SSLOptions +StdEnvVars
