@@ -59,8 +59,11 @@
 #- copy: src=/var/www/html/index.html dest=/srv/sites/master/index.html force=no
 - name: Copy over default index.html
   shell: cp /var/www/html/index.html /srv/sites/master/index.html
+  args:
+    creates: /srv/sites/master/index.html
 
-- file: dest=/srv/sites owner=www-data group=staff mode="g+rw" recurse=yes
+- name: Update permissions on sites directory
+  file: dest=/srv/sites owner=www-data group=staff mode="g+rw" recurse=yes
 
 - name: Update default configuration
   template:
