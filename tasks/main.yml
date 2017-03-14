@@ -1,6 +1,4 @@
 ---
-# tasks file for cob.apache
-
 - name: Install apache and related packages
   apt:
     name: "{{ item }}"
@@ -56,7 +54,7 @@
 - file: path=/etc/apache2/sites-enabled/conf.d state=directory
 
 # note that ansible 'copy' copies from the control machine to the host:
-#- copy: src=/var/www/html/index.html dest=/srv/sites/master/index.html force=no
+# - copy: src=/var/www/html/index.html dest=/srv/sites/master/index.html force=no
 - name: Copy over default index.html
   shell: cp /var/www/html/index.html /srv/sites/master/index.html
   args:
@@ -80,3 +78,4 @@
   with_items:
     - http
     - https
+...
