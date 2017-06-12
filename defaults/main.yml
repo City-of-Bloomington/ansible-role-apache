@@ -1,6 +1,11 @@
 ---
 apache_serveradmin: example@domain.com
 
+apache_modules:
+  - alias
+  - rewrite
+  - ssl
+
 apache_ssl:
   key:
     file: server.key

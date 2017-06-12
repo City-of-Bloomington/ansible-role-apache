@@ -10,14 +10,9 @@
 - name: Add mod_rewrite configuration
   copy: src=rewrite.conf dest=/etc/apache2/mods-available/rewrite.conf force=no
 
-- name: Enable rewrite module
-  apache2_module: state=present name=rewrite
-
-- name: Enable alias module
-  apache2_module: state=present name=alias
-
-- name: Enable SSL module
-  apache2_module: state=present name=ssl
+- name: Enable apache modules
+  apache2_module: state=present name={{ item }}
+  with_items: apache_modules
 
 - name: Generate self-signed certificate
   command: openssl req -new -nodes -x509 -subj "{{ apache_ssl.cert.subj }}" -days 3650 -keyout /etc/ssl/private/{{ apache_ssl.key.file }} -out /etc/ssl/private/{{ apache_ssl.cert.file }}
@@ -70,6 +65,15 @@
     owner: root
     group: root
     mode: 0644
+
+- name: Update websites configuration
+  copy:
+    content: "{{ item.data }}"
+    dest: /etc/apache2/sites-enabled/conf.d/{{ item.file }}
+    mode: 0644
+  with_items: apache_sites
+  when: apache_sites is defined
+  no_log: True
 
 - service: name=apache2 state=restarted
 
