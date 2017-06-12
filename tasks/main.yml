@@ -65,6 +65,16 @@
     owner: root
     group: root
     mode: 0644
+  when: apache_default_site is not defined
+
+- name: Update default configuration
+  copy:
+    content: "{{ apache_default_site.data }}"
+    dest: /etc/apache2/sites-available/000-default.conf
+    owner: root
+    group: root
+    mode: 0644
+  when: apache_default_site is defined
 
 - name: Update websites configuration
   copy:
