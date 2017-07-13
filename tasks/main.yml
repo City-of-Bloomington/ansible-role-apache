@@ -12,7 +12,7 @@
 
 - name: Enable apache modules
   apache2_module: state=present name={{ item }}
-  with_items: apache_modules
+  with_items: "{{ apache_modules }}"
 
 - name: Generate self-signed certificate
   command: openssl req -new -nodes -x509 -subj "{{ apache_ssl.cert.subj }}" -days 3650 -keyout /etc/ssl/private/{{ apache_ssl.key.file }} -out /etc/ssl/private/{{ apache_ssl.cert.file }}
@@ -40,7 +40,7 @@
     content: "{{ apache_ssl.chain.data }}"
     dest: /etc/ssl/private/{{ apache_ssl.chain.file }}
     mode: 0640
-  when: apache_ssl.chain.data is defined
+  when: apache_ssl.chain is defined
   no_log: True
 
 - file: path=/srv              state=directory owner=www-data group=staff mode=2775
