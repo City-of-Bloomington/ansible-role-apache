@@ -55,8 +55,8 @@
   args:
     creates: /srv/sites/master/index.html
 
-- name: Update permissions on sites directory
-  file: dest=/srv/sites owner=www-data group=staff mode="g+rw" recurse=yes
+- name: Create sites directory
+  file: path=/srv/sites state=directory owner=www-data group=staff mode="g+rw"
 
 - name: Update default configuration
   template:
@@ -81,7 +81,7 @@
     content: "{{ item.data }}"
     dest: /etc/apache2/sites-enabled/conf.d/{{ item.file }}
     mode: 0644
-  with_items: apache_sites
+  with_items: "{{ apache_sites }}"
   when: apache_sites is defined
   no_log: True
 
