@@ -9,10 +9,12 @@
 
 - name: Add mod_rewrite configuration
   copy: src=rewrite.conf dest=/etc/apache2/mods-available/rewrite.conf force=no
+  notify: apache_restart
 
 - name: Enable apache modules
   apache2_module: state=present name={{ item }}
   with_items: "{{ apache_modules }}"
+  notify: apache_restart
 
 - name: Generate self-signed certificate
   command: openssl req -new -nodes -x509 -subj "{{ apache_ssl.cert.subj }}" -days 3650 -keyout /etc/ssl/private/{{ apache_ssl.key.file }} -out /etc/ssl/private/{{ apache_ssl.cert.file }}
@@ -26,6 +28,7 @@
     mode: 0640
   when: apache_ssl.key.data is defined
   no_log: True
+  notify: apache_restart
 
 - name: Install ssl cert
   copy:
@@ -34,6 +37,7 @@
     mode: 0640
   when: apache_ssl.cert.data is defined
   no_log: True
+  notify: apache_restart
 
 - name: Install ssl certificate chain
   copy:
@@ -42,6 +46,7 @@
     mode: 0640
   when: apache_ssl.chain is defined
   no_log: True
+  notify: apache_restart
 
 - file: path=/srv              state=directory owner=www-data group=staff mode=2775
 - file: path=/srv/sites        state=directory owner=www-data group=staff mode=2775
@@ -66,6 +71,7 @@
     group: root
     mode: 0644
   when: apache_default_site is not defined
+  notify: apache_restart
 
 - name: Update default configuration
   copy:
@@ -75,6 +81,7 @@
     group: root
     mode: 0644
   when: apache_default_site is defined
+  notify: apache_restart
 
 - name: Update websites configuration
   copy:
@@ -84,8 +91,14 @@
   with_items: "{{ apache_sites }}"
   when: apache_sites is defined
   no_log: True
+  notify: apache_restart
 
-- service: name=apache2 state=restarted
+- name: "Remove server signature"
+  lineinfile: dest=/etc/apache2/conf-available/security.conf regexp="{{ item.regexp }}" line="{{ item.line }}"
+  with_items:
+    - { regexp: "^ServerTokens",    line: "ServerTokens Prod"   }
+    - { regexp: "^ServerSignature", line: "ServerSignature Off" }
+  notify: apache_restart
 
 - name: Configure the firewall (http)
   ufw: rule=allow port={{ item }}
