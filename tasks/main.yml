@@ -72,6 +72,8 @@
     mode: 0644
   when: apache_default_site is not defined
   notify: apache_restart
+  tags:
+    - "apache_conf"
 
 - name: Update default configuration
   copy:
@@ -82,6 +84,8 @@
     mode: 0644
   when: apache_default_site is defined
   notify: apache_restart
+  tags:
+    - "apache_conf"
 
 - name: Update websites configuration
   copy:
@@ -92,6 +96,8 @@
   when: apache_sites is defined
   no_log: True
   notify: apache_restart
+  tags:
+    - "apache_conf"
 
 - name: "Remove server signature"
   lineinfile: dest=/etc/apache2/conf-available/security.conf regexp="{{ item.regexp }}" line="{{ item.line }}"
@@ -99,6 +105,8 @@
     - { regexp: "^ServerTokens",    line: "ServerTokens Prod"   }
     - { regexp: "^ServerSignature", line: "ServerSignature Off" }
   notify: apache_restart
+  tags:
+    - "apache_conf"
 
 - name: Configure the firewall (http)
   ufw: rule=allow port={{ item }}
