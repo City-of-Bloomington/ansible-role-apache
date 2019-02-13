@@ -1,11 +1,11 @@
 ---
-- name: Install apache and related packages
+- name: "Install apache and related packages"
   apt:
-    name: "{{ item }}"
-    state: present
-  tags: apache
-  with_items:
-    - apache2
+    name: "{{ packages }}"
+    state: "present"
+  vars:
+    packages:
+      - "apache2"
 
 - name: Add mod_rewrite configuration
   copy: src=rewrite.conf dest=/etc/apache2/mods-available/rewrite.conf force=no
