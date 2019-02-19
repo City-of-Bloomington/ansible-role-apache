@@ -7,110 +7,129 @@
     packages:
       - "apache2"
 
-- name: Add mod_rewrite configuration
-  copy: src=rewrite.conf dest=/etc/apache2/mods-available/rewrite.conf force=no
-  notify: apache_restart
+- name: "Add mod_rewrite configuration"
+  copy:
+    src: "rewrite.conf"
+    dest: "/etc/apache2/mods-available/rewrite.conf"
+    force: "no"
+  notify: "apache_restart"
 
-- name: Enable apache modules
-  apache2_module: state=present name={{ item }}
-  with_items: "{{ apache_modules }}"
-  notify: apache_restart
+- name: "Create master site directory"
+  file:
+    path:  "/srv/sites/master"
+    state: "directory"
+    owner: "www-data"
+    group: "staff"
+    mode:  "2775"
 
-- name: Generate self-signed certificate
+- name: "Create site configuration directory"
+  file:
+    path: "/etc/apache2/sites-enabled/conf.d"
+    state: "directory"
+
+- name: "Enable apache modules"
+  apache2_module:
+    name: "{{ item }}"
+    state: "present"
+  with_items:
+    - "alias"
+    - "headers"
+    - "rewrite"
+    - "ssl"
+  notify: "apache_restart"
+
+- name: "Generate self-signed certificate"
   command: openssl req -new -nodes -x509 -subj "{{ apache_ssl.cert.subj }}" -days 3650 -keyout /etc/ssl/private/{{ apache_ssl.key.file }} -out /etc/ssl/private/{{ apache_ssl.cert.file }}
-  when: apache_ssl.key.data is undefined
-  no_log: True
+  when: "apache_ssl.key.data is undefined"
+  no_log: "True"
 
-- name: Install ssl key
+- name: "Install ssl key"
   copy:
     content: "{{ apache_ssl.key.data }}"
-    dest: /etc/ssl/private/{{ apache_ssl.key.file }}
-    mode: 0640
-  when: apache_ssl.key.data is defined
-  no_log: True
-  notify: apache_restart
+    dest: "/etc/ssl/private/{{ apache_ssl.key.file }}"
+    mode: "0640"
+  when: "apache_ssl.key.data is defined"
+  no_log: "True"
+  notify: "apache_restart"
 
-- name: Install ssl cert
+- name: "Install ssl cert"
   copy:
     content: "{{ apache_ssl.cert.data }}"
-    dest: /etc/ssl/private/{{ apache_ssl.cert.file }}
-    mode: 0640
-  when: apache_ssl.cert.data is defined
-  no_log: True
-  notify: apache_restart
+    dest: "/etc/ssl/private/{{ apache_ssl.cert.file }}"
+    mode: "0640"
+  when: "apache_ssl.cert.data is defined"
+  no_log: "True"
+  notify: "apache_restart"
 
-- name: Install ssl certificate chain
+- name: "Install ssl certificate chain"
   copy:
     content: "{{ apache_ssl.chain.data }}"
-    dest: /etc/ssl/private/{{ apache_ssl.chain.file }}
-    mode: 0640
-  when: apache_ssl.chain is defined
-  no_log: True
-  notify: apache_restart
-
-- file: path=/srv              state=directory owner=www-data group=staff mode=2775
-- file: path=/srv/sites        state=directory owner=www-data group=staff mode=2775
-- file: path=/srv/sites/master state=directory
-- file: path=/etc/apache2/sites-enabled/conf.d state=directory
+    dest: "/etc/ssl/private/{{ apache_ssl.chain.file }}"
+    mode: "0640"
+  when: "apache_ssl.chain is defined"
+  no_log: "True"
+  notify: "apache_restart"
 
 # note that ansible 'copy' copies from the control machine to the host:
 # - copy: src=/var/www/html/index.html dest=/srv/sites/master/index.html force=no
-- name: Copy over default index.html
-  shell: cp /var/www/html/index.html /srv/sites/master/index.html
+- name: "Copy over default index.html"
+  shell: "cp /var/www/html/index.html /srv/sites/master/index.html"
   args:
-    creates: /srv/sites/master/index.html
+    creates: "/srv/sites/master/index.html"
 
-- name: Create sites directory
-  file: path=/srv/sites state=directory owner=www-data group=staff mode="g+rw"
-
-- name: Update default configuration
+- name: "Update default configuration"
   template:
-    src: 000-default.conf.j2
-    dest: /etc/apache2/sites-available/000-default.conf
-    owner: root
-    group: root
-    mode: 0644
-  when: apache_default_site is not defined
-  notify: apache_restart
+    src: "000-default.conf.j2"
+    dest: "/etc/apache2/sites-available/000-default.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  when: "apache_default_site is not defined"
+  notify: "apache_restart"
   tags:
     - "apache_conf"
 
-- name: Update default configuration
+- name: "Update default configuration"
   copy:
     content: "{{ apache_default_site.data }}"
-    dest: /etc/apache2/sites-available/000-default.conf
-    owner: root
-    group: root
-    mode: 0644
-  when: apache_default_site is defined
-  notify: apache_restart
+    dest:    "/etc/apache2/sites-available/000-default.conf"
+    owner:   "root"
+    group:   "root"
+    mode:    "0644"
+  when: "apache_default_site is defined"
+  notify: "apache_restart"
   tags:
     - "apache_conf"
 
-- name: Update websites configuration
+- name: "Update websites configuration"
   copy:
     content: "{{ item.data }}"
-    dest: /etc/apache2/sites-enabled/conf.d/{{ item.file }}
-    mode: 0644
+    dest: "/etc/apache2/sites-enabled/conf.d/{{ item.file }}"
+    mode: "0644"
   with_items: "{{ apache_sites }}"
-  when: apache_sites is defined
-  no_log: True
-  notify: apache_restart
+  when: "apache_sites is defined"
+  no_log: "True"
+  notify: "apache_restart"
   tags:
     - "apache_conf"
 
 - name: "Remove server signature"
-  lineinfile: dest=/etc/apache2/conf-available/security.conf regexp="{{ item.regexp }}" line="{{ item.line }}"
+  lineinfile:
+    dest:   "/etc/apache2/conf-available/security.conf"
+    regexp: "{{ item.regexp }}"
+    line:   "{{ item.line   }}"
   with_items:
     - { regexp: "^ServerTokens",    line: "ServerTokens Prod"   }
     - { regexp: "^ServerSignature", line: "ServerSignature Off" }
-  notify: apache_restart
+  notify: "apache_restart"
   tags:
     - "apache_conf"
 
-- name: Configure the firewall (http)
-  ufw: rule=allow port={{ item }}
+- name: "Configure the firewall (http)"
+  ufw:
+    rule: "allow"
+    port: "{{ item }}"
   with_items:
-    - http
-    - https
+    - "http"
+    - "https"
 ...
