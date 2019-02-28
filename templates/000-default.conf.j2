@@ -8,6 +8,14 @@ DocumentRoot /srv/sites/master
     Require all granted
 </Directory>
 
+{% if apache_proxy %}
+<IfModule mod_remoteip.c>
+RemoteIPHeader X-Forwarded-For
+RemoteIPInternalProxy {{ apache_proxy | join(' ') }}
+LogFormat "%a %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined
+</IfModule>
+{% endif %}
+
 ErrorLog ${APACHE_LOG_DIR}/error.log
 CustomLog ${APACHE_LOG_DIR}/access.log combined
 
@@ -29,6 +37,10 @@ CustomLog ${APACHE_LOG_DIR}/access.log combined
         <Directory /usr/lib/cgi-bin>
             SSLOptions +StdEnvVars
         </Directory>
+
+        SetEnvIf Origin ^(https?://.+\.bloomington\.in\.gov(?::\d{1,5})?)$   CORS_ALLOW_ORIGIN=$1
+        Header append Access-Control-Allow-Origin  %{CORS_ALLOW_ORIGIN}e   env=CORS_ALLOW_ORIGIN
+        Header merge  Vary "Origin"
 
         IncludeOptional sites-enabled/conf.d/*.conf
     </VirtualHost>

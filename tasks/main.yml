@@ -34,6 +34,7 @@
   with_items:
     - "alias"
     - "headers"
+    - "remoteip"
     - "rewrite"
     - "ssl"
   notify: "apache_restart"
