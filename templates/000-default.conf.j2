@@ -8,7 +8,7 @@ DocumentRoot /srv/sites/master
     Require all granted
 </Directory>
 
-{% if apache_proxy %}
+{% if apache_proxy is defined and apache_proxy %}
 <IfModule mod_remoteip.c>
 RemoteIPHeader X-Forwarded-For
 RemoteIPInternalProxy {{ apache_proxy | join(' ') }}
