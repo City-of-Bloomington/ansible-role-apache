@@ -6,6 +6,7 @@
   vars:
     packages:
       - "apache2"
+      - "lynx"
 
 - name: "Add mod_rewrite configuration"
   copy:
