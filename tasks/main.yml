@@ -42,7 +42,7 @@
 
 - name: "Generate self-signed certificate"
   command: openssl req -new -nodes -x509 -subj "{{ apache_ssl.cert.subj }}" -days 3650 -keyout /etc/ssl/private/{{ apache_ssl.key.file }} -out /etc/ssl/private/{{ apache_ssl.cert.file }}
-  when: "apache_ssl.key.data is undefined"
+  when: "(apache_ssl.cert.subj is defined) and apache_ssl.cert.subj"
   no_log: "True"
 
 - name: "Install ssl key"
@@ -50,7 +50,7 @@
     content: "{{ apache_ssl.key.data }}"
     dest: "/etc/ssl/private/{{ apache_ssl.key.file }}"
     mode: "0640"
-  when: "apache_ssl.key.data is defined"
+  when: "(apache_ssl.key.data is defined) and apache_ssl.key.data"
   no_log: "True"
   notify: "apache_restart"
 
@@ -59,7 +59,7 @@
     content: "{{ apache_ssl.cert.data }}"
     dest: "/etc/ssl/private/{{ apache_ssl.cert.file }}"
     mode: "0640"
-  when: "apache_ssl.cert.data is defined"
+  when: "(apache_ssl.cert.data is defined) and apache_ssl.cert.data"
   no_log: "True"
   notify: "apache_restart"
 
@@ -68,7 +68,7 @@
     content: "{{ apache_ssl.chain.data }}"
     dest: "/etc/ssl/private/{{ apache_ssl.chain.file }}"
     mode: "0640"
-  when: "apache_ssl.chain is defined"
+  when: "(apache_ssl.chain.data is defined) and apache_ssl.chain.data"
   no_log: "True"
   notify: "apache_restart"
 
@@ -81,24 +81,16 @@
 
 - name: "Update default configuration"
   template:
-    src: "000-default.conf.j2"
+    src: "{{ lookup('first_found', paths ) }}"
     dest: "/etc/apache2/sites-available/000-default.conf"
     owner: "root"
     group: "root"
     mode: "0644"
-  when: "apache_default_site is not defined"
-  notify: "apache_restart"
-  tags:
-    - "apache_conf"
-
-- name: "Update default configuration"
-  copy:
-    content: "{{ apache_default_site.data }}"
-    dest:    "/etc/apache2/sites-available/000-default.conf"
-    owner:   "root"
-    group:   "root"
-    mode:    "0644"
-  when: "apache_default_site is defined"
+  vars:
+    paths:
+      - "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}/templates/000-default.conf"
+      - "{{ inventory_dir }}/group_vars/apache/templates/000-default.conf"
+      - "{{ role_path }}/templates/000-default.conf"
   notify: "apache_restart"
   tags:
     - "apache_conf"
