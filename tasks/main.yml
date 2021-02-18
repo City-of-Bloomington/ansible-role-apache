@@ -96,13 +96,12 @@
     - "apache_conf"
 
 - name: "Update websites configuration"
-  copy:
-    content: "{{ item.data }}"
-    dest: "/etc/apache2/sites-enabled/conf.d/{{ item.file }}"
+  template:
+    src: "{{ item }}"
+    dest: "/etc/apache2/sites-enabled/conf.d/"
     mode: "0644"
-  with_items: "{{ apache_sites }}"
-  when: "apache_sites is defined"
-  no_log: "True"
+  with_fileglob:
+    - "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}/templates/apache_sites/*.conf"
   notify: "apache_restart"
   tags:
     - "apache_conf"
