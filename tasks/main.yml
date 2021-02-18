@@ -38,6 +38,9 @@
     - "remoteip"
     - "rewrite"
     - "ssl"
+    - "proxy"
+    - "proxy_html"
+    - "proxy_http"
   notify: "apache_restart"
 
 - name: "Generate self-signed certificate"
