@@ -15,6 +15,11 @@
     force: "no"
   notify: "apache_restart"
 
+- name: 'Disable other vhosts logging'
+  file:
+    path: '/etc/apache2/conf-enabled/other-vhost-access-log.conf'
+    state: 'absent'
+
 - name: "Create master site directory"
   file:
     path:  "/srv/sites/master"
