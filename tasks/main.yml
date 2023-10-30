@@ -41,6 +41,7 @@
     - "alias"
     - "headers"
     - "remoteip"
+    - "reqtimeout"
     - "rewrite"
     - "ssl"
     - "proxy"
