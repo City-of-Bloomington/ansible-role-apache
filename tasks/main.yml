@@ -88,6 +88,11 @@
   args:
     creates: "/srv/sites/master/index.html"
 
+- name: 'Install Favicon'
+  ansible.builtin.copy:
+    src:  'favicon.ico'
+    dest: '/srv/sites/master/favicon.ico'
+
 - name: "Update default configuration"
   template:
     src: "{{ lookup('first_found', paths ) }}"
