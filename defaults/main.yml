@@ -1,10 +1,11 @@
 ---
 apache_serveradmin: example@domain.com
+apache_default_domain: "{{ ansible_host }}"
 
 apache_ssl:
   key:
     file: server.key
   cert:
     file: server.crt
-    subj: /CN={{ ansible_host }}
+    subj: "/CN={{ apache_default_domain }}"
 ...
