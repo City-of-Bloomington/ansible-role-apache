@@ -60,6 +60,14 @@
     - "proxy_http"
   notify: "apache_restart"
 
+- name: 'Disable apache configurations'
+  ansible.builtin.command: "a2disconf {{ item }}"
+  args:
+    removes: "/etc/apache2/conf-enabled/{{ item }}.conf"
+  with_items:
+    - 'serve-cgi-bin'
+  notify: 'apache_restart'
+
 - name: "Generate self-signed certificate"
   command: openssl req -new -nodes -x509 -subj "{{ apache_ssl.cert.subj }}" -days 3650 -keyout /etc/ssl/private/{{ apache_ssl.key.file }} -out /etc/ssl/private/{{ apache_ssl.cert.file }}
   when: "(apache_ssl.cert.subj is defined) and apache_ssl.cert.subj"
