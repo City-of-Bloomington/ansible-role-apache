@@ -26,12 +26,12 @@
   notify: 'apache_restart'
 
 - name: 'Disable other vhosts logging'
-  file:
+  ansible.builtin.file:
     path: '/etc/apache2/conf-enabled/other-vhost-access-log.conf'
     state: 'absent'
 
 - name: "Create master site directory"
-  file:
+  ansible.builtin.file:
     path:  "/srv/sites/master"
     state: "directory"
     owner: "www-data"
@@ -39,12 +39,12 @@
     mode:  "2775"
 
 - name: "Create site configuration directory"
-  file:
+  ansible.builtin.file:
     path: "/etc/apache2/sites-enabled/conf.d"
     state: "directory"
 
 - name: "Enable apache modules"
-  apache2_module:
+  community.general.apache2_module:
     name: "{{ item }}"
     state: "present"
   with_items:
@@ -69,41 +69,49 @@
   notify: 'apache_restart'
 
 - name: "Generate self-signed certificate"
-  command: openssl req -new -nodes -x509 -subj "{{ apache_ssl.cert.subj }}" -days 3650 -keyout /etc/ssl/private/{{ apache_ssl.key.file }} -out /etc/ssl/private/{{ apache_ssl.cert.file }}
-  when: "(apache_ssl.cert.subj is defined) and apache_ssl.cert.subj"
+  ansible.builtin.command: openssl req -new -nodes -x509 -subj "{{ apache_ssl.cert.subj }}" -days 3650 -keyout /etc/ssl/private/{{ apache_ssl.key.file }} -out /etc/ssl/private/{{ apache_ssl.cert.file }}
+  when:
+    - apache_ssl.cert.subj is defined
+    - apache_ssl.cert.subj is truthy
   no_log: true
 
 - name: "Install ssl key"
-  copy:
+  ansible.builtin.copy:
     content: "{{ apache_ssl.key.data }}"
     dest: "/etc/ssl/private/{{ apache_ssl.key.file }}"
     mode: "0640"
-  when: "(apache_ssl.key.data is defined) and apache_ssl.key.data"
+    when:
+      - apache_ssl.key.data is defined
+      - apache_ssl.key.data is truthy
   no_log: true
   notify: "apache_restart"
 
 - name: "Install ssl cert"
-  copy:
+  ansible.builtin.copy:
     content: "{{ apache_ssl.cert.data }}"
     dest: "/etc/ssl/private/{{ apache_ssl.cert.file }}"
     mode: "0640"
-  when: "(apache_ssl.cert.data is defined) and apache_ssl.cert.data"
+  when:
+    - apache_ssl.cert.data is defined
+    - apache_ssl.cert.data is truthy
   no_log: true
   notify: "apache_restart"
 
 - name: "Install ssl certificate chain"
-  copy:
+  ansible.builtin.copy:
     content: "{{ apache_ssl.chain.data }}"
     dest: "/etc/ssl/private/{{ apache_ssl.chain.file }}"
     mode: "0640"
-  when: "(apache_ssl.chain.data is defined) and apache_ssl.chain.data"
+  when:
+    - apache_ssl.chain.data is defined
+    - apache_ssl.chain.data is truthy
   no_log: true
   notify: "apache_restart"
 
 # note that ansible 'copy' copies from the control machine to the host:
 # - copy: src=/var/www/html/index.html dest=/srv/sites/master/index.html force=no
 - name: "Copy over default index.html"
-  shell: "cp /var/www/html/index.html /srv/sites/master/index.html"
+  ansible.builtin.shell: "cp /var/www/html/index.html /srv/sites/master/index.html"
   args:
     creates: "/srv/sites/master/index.html"
 
@@ -113,7 +121,7 @@
     dest: '/srv/sites/master/favicon.ico'
 
 - name: "Update default configuration"
-  template:
+  ansible.builtin.template:
     src: "{{ lookup('first_found', paths ) }}"
     dest: "/etc/apache2/sites-available/000-default.conf"
     owner: "root"
@@ -129,7 +137,7 @@
     - "apache_conf"
 
 - name: "Update websites configuration"
-  template:
+  ansible.builtin.template:
     src: "{{ item }}"
     dest: "/etc/apache2/sites-enabled/conf.d/"
     mode: "0644"
@@ -140,7 +148,7 @@
     - "apache_conf"
 
 - name: "Remove server signature"
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest:   "/etc/apache2/conf-available/security.conf"
     regexp: "{{ item.regexp }}"
     line:   "{{ item.line   }}"
@@ -152,7 +160,7 @@
     - "apache_conf"
 
 - name: "Disable outdated security protocols"
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest:   "/etc/apache2/mods-enabled/ssl.conf"
     regexp: "^.+SSLProtocol.+$"
     line:   "SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1"
@@ -161,7 +169,7 @@
     - "apache_conf"
 
 - name: "Configure the firewall (http)"
-  ufw:
+  community.general.ufw:
     rule: "allow"
     port: "{{ item }}"
   with_items:
