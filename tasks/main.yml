@@ -80,9 +80,9 @@
     content: "{{ apache_ssl.key.data }}"
     dest: "/etc/ssl/private/{{ apache_ssl.key.file }}"
     mode: "0640"
-    when:
-      - apache_ssl.key.data is defined
-      - apache_ssl.key.data is truthy
+  when:
+    - apache_ssl.key.data is defined
+    - apache_ssl.key.data is truthy
   no_log: true
   notify: "apache_restart"
 
