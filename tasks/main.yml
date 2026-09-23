@@ -10,21 +10,6 @@
       - 'libapache2-mod-security2'
       - 'modsecurity-crs'
 
-- name: "Apache module configuration"
-  ansible.builtin.copy:
-    src: "{{ item }}"
-    dest: "/etc/apache2/mods-available/{{ item }}"
-  loop:
-    - 'rewrite.conf'
-    - 'security2.conf'
-  notify: "apache_restart"
-
-- name: 'Configure modsecurity'
-  ansible.builtin.copy:
-    src:  'modsecurity.conf'
-    dest: '/etc/modsecurity/modsecurity.conf'
-  notify: 'apache_restart'
-
 - name: 'Disable other vhosts logging'
   ansible.builtin.file:
     path: '/etc/apache2/conf-enabled/other-vhost-access-log.conf'
