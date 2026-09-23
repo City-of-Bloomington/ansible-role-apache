@@ -8,6 +8,7 @@
       - "apache2"
       - "lynx"
       - 'libapache2-mod-security2'
+      - 'libapache2-mod-evasive'
       - 'modsecurity-crs'
 
 - name: 'Disable other vhosts logging'
@@ -30,10 +31,12 @@
 
 - name: "Enable apache modules"
   community.general.apache2_module:
-    name: "{{ item }}"
+    name:       "{{ item }}"
+    identifier: "{{ item }}_module"
     state: "present"
   with_items:
     - "alias"
+    - 'evasive'
     - "headers"
     - "remoteip"
     - "reqtimeout"
@@ -93,8 +96,6 @@
   no_log: true
   notify: "apache_restart"
 
-# note that ansible 'copy' copies from the control machine to the host:
-# - copy: src=/var/www/html/index.html dest=/srv/sites/master/index.html force=no
 - name: "Copy over default index.html"
   ansible.builtin.shell: "cp /var/www/html/index.html /srv/sites/master/index.html"
   args:
