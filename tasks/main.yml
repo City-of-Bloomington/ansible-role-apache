@@ -11,11 +11,6 @@
       - 'libapache2-mod-evasive'
       - 'modsecurity-crs'
 
-- name: 'Disable other vhosts logging'
-  ansible.builtin.file:
-    path: '/etc/apache2/conf-enabled/other-vhost-access-log.conf'
-    state: 'absent'
-
 - name: "Create master site directory"
   ansible.builtin.file:
     path:  "/srv/sites/master"
@@ -54,6 +49,7 @@
     removes: "/etc/apache2/conf-enabled/{{ item }}.conf"
   with_items:
     - 'serve-cgi-bin'
+    - 'other-vhosts-access-log'
   notify: 'apache_restart'
 
 - name: "Generate self-signed certificate"
